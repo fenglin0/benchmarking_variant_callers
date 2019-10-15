@@ -1,0 +1,2 @@
+# benchmarking_variant_callers
+In this study, we perform systematic comparative analysis of seven widely-used SNV-calling methods, including SAMtools, the GATK Best Practices pipeline, CTAT, FreeBayes, MuTect2, Strelka2 and VarScan2, on both simulated and real single-cell RNA-seq datasets. We evaluate the performances of these tools in different read depths, genomic contexts, functional regions and variant allele frequencies.
