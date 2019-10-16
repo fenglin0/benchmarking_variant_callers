@@ -4,10 +4,9 @@ set -o nounset
  
 #########################################
 #written by Fenglin
-#2019-03-27 created
 #AIM: to call variants using different tools
 #########################################
-project=$1 #CRC.CD45neg/malignant HCC/10X 
+project=$1
 patient=$2
 sample=$3 
 pipe=$4
@@ -23,7 +22,7 @@ if [ "$pipe" = "gsnap-ctat" ]; then
 fi
 
 if [ "$pipe" = "gatk" ]; then
-    #java -jar picard.jar MarkDuplicates I=$inBam O=$dedupped_bam CREATE_INDEX=true M=$output_metrics
+        #java -jar picard.jar MarkDuplicates I=$inBam O=$dedupped_bam CREATE_INDEX=true M=$output_metrics
 	#java -jar $path_to_gatk/gatk SplitNCigarReads -R $faFile -I $dedupped_bam -O $split_bam --read-validation-stringency LENIENT
 	#java -jar $path_to_gatk/gatk BaseRecalibrator -R $faFile -I $split_bam -O $recalibrated_bam_tmp1 --known-sites $vcf_file
 	#java -jar $path_to_gatk/gatk PrintReads -I $split_bam -O $recalibrated_bam_tmp2
@@ -35,22 +34,22 @@ if [ "$pipe" = "gatk" ]; then
 fi
 
 if [ "$pipe" = "strelka" ]; then
-    $path_to_strelka2/bin/configureStrelkaGermlineWorkflow.py --bam $inBam --referenceFasta $faFile --runDir $outDir --rna
-    $outDir/runWorkflow.py -m local -j 8
+        $path_to_strelka2/bin/configureStrelkaGermlineWorkflow.py --bam $inBam --referenceFasta $faFile --runDir $outDir --rna
+        $outDir/runWorkflow.py -m local -j 8
 	less $outDir/results/variants/variants.vcf.gz |grep "#\|PASS" > $outDir/$sample.vcf
 fi
 
 if [ "$pipe" = "mutect" ]; then
-	inBam="recalibrated.bam"
+	inBam=$recalibrated_bam
 	$path_to_gatk/gatk Mutect2 -R $faFile -I $inBam -O $outDir/$sample.vcf -tumor $sm --tumor-lod-to-emit 5 --initial-tumor-lod 5 #to adjust paramters
 fi
 
 if [ "$pipe" = "varscan" ]; then
-	samtools mpileup -f $faFile $inBam |java -jar /lustre1/zeminz_pkuhpc/01.bin/varscan/VarScan.v2.4.3.jar mpileup2snp --min-coverage 1 --min-reads2 1 --output-vcf 1 --strand-filter 0 --p-value 0.95 >$outDir/$sample.vcf #to adjust parameters
+	samtools mpileup -f $faFile $inBam |java -jar $path_to_varscan/VarScan.v2.4.3.jar mpileup2snp --min-coverage 1 --min-reads2 1 --output-vcf 1 --strand-filter 0 --p-value 0.95 >$outDir/$sample.vcf #to adjust parameters
 fi
 
 if [ "$pipe" = "freebayes" ]; then
-	inBam="dedupped.bam"
+	inBam=$dedupped_bam
 	$path_to_freebayes/bin/freebayes -C 0 -F 0 --fasta-reference $faFile $inBam > $outDir/$sample.vcf #to adjust paramters
 	/lustre1/zeminz_pkuhpc/01.bin/vcflib/bin/vcffilter -f "QUAL > 20" $outDir/$sample.vcf |bgzip -c > $outDir/${sample}.sorted.vcf.gz
 fi
