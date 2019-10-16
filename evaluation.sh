@@ -5,8 +5,7 @@ set -o nounset
 #########################################
 #written by Fenglin
 #2019-03-27 created
-#AIM:
-#USAGE:
+#AIM: to substract and compare the obtained variants with benchmarking variants
 #########################################
 
 project=$1
@@ -23,15 +22,6 @@ if [ ! -f $faDir/random_${n}_sites_conf_reverse.vcf.gz ]; then
     bgzip -f $faDir/random_${n}_sites_conf_reverse.vcf
     tabix -f $faDir/random_${n}_sites_conf_reverse.vcf.gz
 fi
-
-if [ ! -f $simulDir/${sample}.sorted.vcf.gz ]; then
-	bgzip -f $simulDir/${sample}.sorted.vcf
-fi
-tabix -f $simulDir/${sample}.sorted.vcf.gz
-if [ ! -f $origDir/${sample}.sorted.vcf.gz ]; then
-	bgzip -f $origDir/${sample}.sorted.vcf
-fi
-tabix -f $origDir/${sample}.sorted.vcf.gz
 
 ### Subtract the original variants called from hg19 reference
 rtg vcfeval -b $origDir/$sample.sorted.vcf.gz -c $simulDir/$sample.sorted.vcf.gz -t $faDir/random_${n}_sites_conf.sdf -o $subDir --squash-ploidy 
